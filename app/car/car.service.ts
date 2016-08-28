@@ -1,25 +1,55 @@
-import { Injectable } from '@angular/core';
+import { Injectable }    from '@angular/core';
+import { Headers, Http, Response } from '@angular/http';
 import { Car } from './car';
-import { Http, Response } from '@angular/http';
-import 'rxjs/Rx';
-import { Observable }     from 'rxjs/Observable';
+import { Observable } from 'rxjs/Rx';
 
 @Injectable()
 export class CarService {
 
-    public values: any;
+  constructor (private http: Http) {}
+  private _carsUrl = 'http://localhost:51673/api/cars';  // URL to web API
 
-    constructor(public _http: Http) { }
+  getCars (): Observable<Car[]> {
+    return this.http.get(this._carsUrl)
+                    .map(this.extractData)
+                    .catch(this.handleError);
+  }
 
-    private _heroesUrl = 'http://localhost:61553/api/values'; // URL to web api
+  private extractData(res: Response) {
+      let body = res.json();
+      console.log("Hello response: " + body);
+      return body.data || { };
+  }
 
-    getHeroes() {
-        return this._http.get(this._heroesUrl)
-            .map(res => <Car[]>res.json())
-            .catch(this.handleError);
-    }
-    private handleError(error: Response) {
-        console.error(error);
-        return Observable.throw(error.json().error || 'Server error');
-    }
+  private handleError (error: any) {
+      // In a real world app, we might use a remote logging infrastructure
+      // We'd also dig deeper into the error to get a better message
+      let errMsg = (error.message) ? error.message :
+        error.status ? `${error.status} - ${error.statusText}` : 'Server error';
+      console.error(errMsg); // log to console instead
+      return Observable.throw(errMsg);
+  }
+
 }
+
+/*
+  Error: Cannot find a differ supporting object '[object Object]' of type 'object'. NgFor only supports binding to Iterables such as Arrays.
+
+  Example returned data:
+
+  [
+  {
+    "Make": "Porche",
+    "Model": "GT3"
+  },
+  {
+    "Make": "Mercedes",
+    "Model": "AMG"
+  },
+  {
+    "Make": "Nissan",
+    "Model": "Skyline-GTR"
+  }
+  ]
+
+*/
